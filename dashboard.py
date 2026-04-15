@@ -80,9 +80,9 @@ st.markdown(
         padding: 0.45rem 0.9rem !important;
     }}
     [data-baseweb="tab"][aria-selected="true"] {{
-        background-color: {PALETTE['accent']} !important;
-        color: #FFFFFF !important;
-        border-color: {PALETTE['accent']} !important;
+        background-color: #FECACA !important;
+        color: #7F1D1D !important;
+        border-color: #FCA5A5 !important;
     }}
     [data-baseweb="tab"] p {{
         color: inherit !important;
@@ -110,14 +110,14 @@ st.markdown(
     }}
     [data-testid="stButton"] > button[kind="primary"],
     [data-testid="stButton"] > button[data-testid="baseButton-primary"] {{
-        background: {PALETTE['accent']} !important;
+        background: #14B8A6 !important;
         color: #FFFFFF !important;
-        border-color: {PALETTE['accent']} !important;
+        border-color: #14B8A6 !important;
     }}
     [data-testid="stButton"] > button[kind="primary"]:hover,
     [data-testid="stButton"] > button[data-testid="baseButton-primary"]:hover {{
-        background: #0B5F58 !important;
-        border-color: #0B5F58 !important;
+        background: #0FA392 !important;
+        border-color: #0FA392 !important;
         color: #FFFFFF !important;
     }}
 
@@ -186,12 +186,12 @@ with menu_col3:
     )
 with menu_col4:
     st.button(
-        "Prevalencia v populácii",
+        "Prevalencia komorbidít",
         key="menu_prevalencia",
         use_container_width=True,
-        type="primary" if current_menu_section == "Prevalencia v populácii" else "secondary",
+        type="primary" if current_menu_section == "Prevalencia komorbidít" else "secondary",
         on_click=set_top_menu_section,
-        args=("Prevalencia v populácii",)
+        args=("Prevalencia komorbidít",)
     )
 with menu_col5:
     st.button(
@@ -1021,101 +1021,63 @@ elif menu_section == "Asociačné pravidlá":
         "fpgrowth"
     )
 
-elif menu_section == "Prevalencia v populácii":
-    st.subheader("Prevalencia v populácii")
+elif menu_section == "Prevalencia komorbidít":
+    st.subheader("Prevalencia komorbidít")
 
     if len(df) == 0:
         st.warning("Nie sú dostupné dáta na výpočet prevalencie.")
     else:
-        prevalence_group = st.radio(
-            "Zobraziť premenné",
-            options=["Komorbidity", "Lieky", "Všetko"],
-            horizontal=True,
-            index=2
-        )
-
-        if prevalence_group == "Komorbidity":
-            prevalence_cols = [col for col in comorbidity_options if col in df.columns]
-        elif prevalence_group == "Lieky":
-            prevalence_cols = [col for col in drug_options if col in df.columns]
-        else:
-            prevalence_cols = [
-                col for col in (comorbidity_options + drug_options)
-                if col in df.columns
-            ]
+        prevalence_cols = [col for col in comorbidity_options if col in df.columns]
 
         if not prevalence_cols:
             st.warning("V datasete sa nenašli požadované stĺpce pre prevalenciu.")
         else:
-            total_population = len(df)
             filtered_population = len(df_filtered)
-
-            total_positive = df[prevalence_cols].eq(True).sum()
             filtered_positive = df_filtered[prevalence_cols].eq(True).sum()
-
-            total_prevalence = (total_positive / total_population * 100).fillna(0)
             if filtered_population > 0:
-                filtered_prevalence = (filtered_positive / filtered_population * 100).fillna(0)
+                filtered_prevalence = (filtered_positive / filtered_population * 100).fillna(0).round(2)
             else:
                 filtered_prevalence = pd.Series(0.0, index=prevalence_cols)
 
             prevalence_table = pd.DataFrame({
-                "Premenná": prevalence_cols,
-                "Prevalencia celá populácia (%)": total_prevalence.reindex(prevalence_cols).round(2).values,
-                "Prevalencia filtrovaná (%)": filtered_prevalence.reindex(prevalence_cols).round(2).values,
-                "Rozdiel (p. b.)": (
-                    filtered_prevalence.reindex(prevalence_cols) - total_prevalence.reindex(prevalence_cols)
-                ).round(2).values,
-                "Počet (celá)": total_positive.reindex(prevalence_cols).astype(int).values,
-                "Počet (filtrovaná)": filtered_positive.reindex(prevalence_cols).astype(int).values
+                "Komorbidita": prevalence_cols,
+                "Nameraná prevalencia (%)": filtered_prevalence.reindex(prevalence_cols).values
             })
 
             prevalence_table = prevalence_table.sort_values(
-                "Prevalencia filtrovaná (%)",
+                "Nameraná prevalencia (%)",
                 ascending=False
             )
 
-            pcol1, pcol2, pcol3 = st.columns(3)
-            with pcol1:
-                st.metric("Veľkosť celej populácie", total_population)
-            with pcol2:
-                st.metric("Veľkosť filtrovanej populácie", filtered_population)
-            with pcol3:
-                if total_population > 0:
-                    st.metric("Podiel filtrovanej populácie", f"{(filtered_population / total_population) * 100:.1f} %")
+            prevalence_text = prevalence_table.copy()
+            prevalence_text["Nameraná prevalencia v datasete"] = prevalence_text[
+                "Nameraná prevalencia (%)"
+            ].map(lambda value: f"{value:.2f} %")
+            prevalence_text["Prevalencia v bežnej populácii"] = ""
 
-            st.dataframe(prevalence_table, use_container_width=True, hide_index=True)
+            rows_html = []
+            for _, row in prevalence_text.iterrows():
+                rows_html.append(
+                    "<div style='display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:1rem;padding:0.15rem 0;'>"
+                    f"<div>{row['Komorbidita']}</div>"
+                    f"<div>{row['Nameraná prevalencia v datasete']}</div>"
+                    f"<div>{row['Prevalencia v bežnej populácii']}</div>"
+                    "</div>"
+                )
 
-            top_n = st.slider(
-                "Počet premenných v grafe",
-                min_value=5,
-                max_value=min(20, len(prevalence_table)),
-                value=min(10, len(prevalence_table)),
-                step=1
+            st.markdown(
+                f"""
+                <div style="font-family: inherit; font-size: 1rem;">
+                    <div style="display:grid;grid-template-columns:2fr 1.5fr 1.5fr;gap:1rem;font-weight:600;padding-bottom:0.25rem;">
+                        <div>Komorbidita</div>
+                        <div>Nameraná prevalencia v datasete</div>
+                        <div>Prevalencia v bežnej populácii</div>
+                    </div>
+                    {''.join(rows_html)}
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-
-            chart_df = prevalence_table.head(top_n)
-            prevalence_fig = px.bar(
-                chart_df,
-                x="Prevalencia filtrovaná (%)",
-                y="Premenná",
-                orientation="h",
-                color="Rozdiel (p. b.)",
-                text="Prevalencia filtrovaná (%)",
-                color_continuous_scale=["#E7F3F1", "#9FD2CB", "#0F766E"]
-            )
-            prevalence_fig.update_traces(
-                texttemplate="%{text:.2f} %",
-                textposition="outside",
-                cliponaxis=False
-            )
-            prevalence_fig.update_layout(
-                margin=dict(l=24, r=24, t=24, b=64),
-                coloraxis_colorbar=dict(title="Rozdiel (p. b.)")
-            )
-            prevalence_fig.update_yaxes(autorange="reversed", title_text="")
-            apply_chart_theme(prevalence_fig)
-            st.plotly_chart(prevalence_fig, use_container_width=True)
 
 elif menu_section == "Príručka":
     st.subheader("Príručka")
@@ -1133,7 +1095,7 @@ elif menu_section == "Príručka":
 - **Prehľad**: základná deskriptívna analýza filtrovanej kohorty.
 - **Výsledky modelov**: porovnanie Random Forest modelu s baseline modelom.
 - **Asociačné pravidlá**: pravidlá z Apriori a FP-Growth s nastaviteľnými prahmi.
-- **Prevalencia v populácii**: porovnanie prevalencie komorbidít a liekov v celej vs filtrovanej populácii.
+- **Prevalencia komorbidít**: porovnanie prevalencie komorbidít v celej vs filtrovanej populácii.
 
 ### Tipy k filtrom
 
