@@ -1032,16 +1032,17 @@ elif menu_section == "Prevalencia komorbidít":
         if not prevalence_cols:
             st.warning("V datasete sa nenašli požadované stĺpce pre prevalenciu.")
         else:
-            filtered_population = len(df_filtered)
-            filtered_positive = df_filtered[prevalence_cols].eq(True).sum()
-            if filtered_population > 0:
-                filtered_prevalence = (filtered_positive / filtered_population * 100).fillna(0).round(2)
+            # Fixne hodnoty pre cely dataset (nie podla aktualnych filtrov)
+            dataset_population = len(df)
+            dataset_positive = df[prevalence_cols].eq(True).sum()
+            if dataset_population > 0:
+                fixed_dataset_prevalence = (dataset_positive / dataset_population * 100).fillna(0).round(2)
             else:
-                filtered_prevalence = pd.Series(0.0, index=prevalence_cols)
+                fixed_dataset_prevalence = pd.Series(0.0, index=prevalence_cols)
 
             prevalence_table = pd.DataFrame({
                 "Komorbidita": prevalence_cols,
-                "Nameraná prevalencia (%)": filtered_prevalence.reindex(prevalence_cols).values
+                "Nameraná prevalencia (%)": fixed_dataset_prevalence.reindex(prevalence_cols).values
             })
 
             prevalence_table = prevalence_table.sort_values(
@@ -1053,7 +1054,12 @@ elif menu_section == "Prevalencia komorbidít":
             prevalence_text["Nameraná prevalencia v datasete"] = prevalence_text[
                 "Nameraná prevalencia (%)"
             ].map(lambda value: f"{value:.2f} %")
-            prevalence_text["Prevalencia v bežnej populácii"] = ""
+            manual_population_prevalence = {
+                "Kardiovaskulárne ochorenia": "7,2 %"
+            }
+            prevalence_text["Prevalencia v bežnej populácii"] = prevalence_text[
+                "Komorbidita"
+            ].map(manual_population_prevalence).fillna("")
 
             rows_html = []
             for _, row in prevalence_text.iterrows():
