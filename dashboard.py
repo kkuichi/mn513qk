@@ -156,7 +156,7 @@ def set_top_menu_section(section_name):
 
 current_menu_section = st.session_state["top_menu_section"]
 
-menu_col1, menu_col2, menu_col3 = st.columns(3)
+menu_col1, menu_col2, menu_col3, menu_col4, menu_col5 = st.columns(5)
 with menu_col1:
     st.button(
         "Prehľad",
@@ -183,6 +183,24 @@ with menu_col3:
         type="primary" if current_menu_section == "Asociačné pravidlá" else "secondary",
         on_click=set_top_menu_section,
         args=("Asociačné pravidlá",)
+    )
+with menu_col4:
+    st.button(
+        "Prevalencia v populácii",
+        key="menu_prevalencia",
+        use_container_width=True,
+        type="primary" if current_menu_section == "Prevalencia v populácii" else "secondary",
+        on_click=set_top_menu_section,
+        args=("Prevalencia v populácii",)
+    )
+with menu_col5:
+    st.button(
+        "Príručka",
+        key="menu_prirucka",
+        use_container_width=True,
+        type="primary" if current_menu_section == "Príručka" else "secondary",
+        on_click=set_top_menu_section,
+        args=("Príručka",)
     )
 
 menu_section = st.session_state["top_menu_section"]
@@ -987,9 +1005,11 @@ elif menu_section == "Výsledky modelov":
 
 elif menu_section == "Asociačné pravidlá":
     st.subheader("Asociačné pravidlá")
+    rules_base_dir = Path(__file__).resolve().parent
+
     render_association_rules_section(
         "Apriori",
-        r"C:\Users\Martin Novy\Documents\SKOLA\Bakalarka\Test Environment\asociacne_pravidla.xlsx",
+        str(rules_base_dir / "asociacne_pravidla.xlsx"),
         "apriori"
     )
 
@@ -997,6 +1017,128 @@ elif menu_section == "Asociačné pravidlá":
 
     render_association_rules_section(
         "FP-Growth",
-        r"C:\Users\Martin Novy\Documents\SKOLA\Bakalarka\Test Environment\asociacne_pravidla_fpgrowth.xlsx",
+        str(rules_base_dir / "asociacne_pravidla_fpgrowth.xlsx"),
         "fpgrowth"
+    )
+
+elif menu_section == "Prevalencia v populácii":
+    st.subheader("Prevalencia v populácii")
+
+    if len(df) == 0:
+        st.warning("Nie sú dostupné dáta na výpočet prevalencie.")
+    else:
+        prevalence_group = st.radio(
+            "Zobraziť premenné",
+            options=["Komorbidity", "Lieky", "Všetko"],
+            horizontal=True,
+            index=2
+        )
+
+        if prevalence_group == "Komorbidity":
+            prevalence_cols = [col for col in comorbidity_options if col in df.columns]
+        elif prevalence_group == "Lieky":
+            prevalence_cols = [col for col in drug_options if col in df.columns]
+        else:
+            prevalence_cols = [
+                col for col in (comorbidity_options + drug_options)
+                if col in df.columns
+            ]
+
+        if not prevalence_cols:
+            st.warning("V datasete sa nenašli požadované stĺpce pre prevalenciu.")
+        else:
+            total_population = len(df)
+            filtered_population = len(df_filtered)
+
+            total_positive = df[prevalence_cols].eq(True).sum()
+            filtered_positive = df_filtered[prevalence_cols].eq(True).sum()
+
+            total_prevalence = (total_positive / total_population * 100).fillna(0)
+            if filtered_population > 0:
+                filtered_prevalence = (filtered_positive / filtered_population * 100).fillna(0)
+            else:
+                filtered_prevalence = pd.Series(0.0, index=prevalence_cols)
+
+            prevalence_table = pd.DataFrame({
+                "Premenná": prevalence_cols,
+                "Prevalencia celá populácia (%)": total_prevalence.reindex(prevalence_cols).round(2).values,
+                "Prevalencia filtrovaná (%)": filtered_prevalence.reindex(prevalence_cols).round(2).values,
+                "Rozdiel (p. b.)": (
+                    filtered_prevalence.reindex(prevalence_cols) - total_prevalence.reindex(prevalence_cols)
+                ).round(2).values,
+                "Počet (celá)": total_positive.reindex(prevalence_cols).astype(int).values,
+                "Počet (filtrovaná)": filtered_positive.reindex(prevalence_cols).astype(int).values
+            })
+
+            prevalence_table = prevalence_table.sort_values(
+                "Prevalencia filtrovaná (%)",
+                ascending=False
+            )
+
+            pcol1, pcol2, pcol3 = st.columns(3)
+            with pcol1:
+                st.metric("Veľkosť celej populácie", total_population)
+            with pcol2:
+                st.metric("Veľkosť filtrovanej populácie", filtered_population)
+            with pcol3:
+                if total_population > 0:
+                    st.metric("Podiel filtrovanej populácie", f"{(filtered_population / total_population) * 100:.1f} %")
+
+            st.dataframe(prevalence_table, use_container_width=True, hide_index=True)
+
+            top_n = st.slider(
+                "Počet premenných v grafe",
+                min_value=5,
+                max_value=min(20, len(prevalence_table)),
+                value=min(10, len(prevalence_table)),
+                step=1
+            )
+
+            chart_df = prevalence_table.head(top_n)
+            prevalence_fig = px.bar(
+                chart_df,
+                x="Prevalencia filtrovaná (%)",
+                y="Premenná",
+                orientation="h",
+                color="Rozdiel (p. b.)",
+                text="Prevalencia filtrovaná (%)",
+                color_continuous_scale=["#E7F3F1", "#9FD2CB", "#0F766E"]
+            )
+            prevalence_fig.update_traces(
+                texttemplate="%{text:.2f} %",
+                textposition="outside",
+                cliponaxis=False
+            )
+            prevalence_fig.update_layout(
+                margin=dict(l=24, r=24, t=24, b=64),
+                coloraxis_colorbar=dict(title="Rozdiel (p. b.)")
+            )
+            prevalence_fig.update_yaxes(autorange="reversed", title_text="")
+            apply_chart_theme(prevalence_fig)
+            st.plotly_chart(prevalence_fig, use_container_width=True)
+
+elif menu_section == "Príručka":
+    st.subheader("Príručka")
+
+    st.markdown(
+        """
+### Ako používať dashboard
+
+1. Vľavo nastavte filtre (vek, pohlavie, vlna, výsledok hospitalizácie, komorbidity, lieky).
+2. Hore si zvoľte sekciu podľa toho, čo chcete analyzovať.
+3. Pri každej zmene filtrov sa grafy a tabuľky prepočítajú automaticky.
+
+### Popis sekcií
+
+- **Prehľad**: základná deskriptívna analýza filtrovanej kohorty.
+- **Výsledky modelov**: porovnanie Random Forest modelu s baseline modelom.
+- **Asociačné pravidlá**: pravidlá z Apriori a FP-Growth s nastaviteľnými prahmi.
+- **Prevalencia v populácii**: porovnanie prevalencie komorbidít a liekov v celej vs filtrovanej populácii.
+
+### Tipy k filtrom
+
+- Pri komorbiditách a liekoch môžete voliť logiku **AND** alebo **OR**.
+- Tlačidlá **Vybrať všetky** a **Zrušiť všetky** zrýchľujú prácu so sidebarom.
+- Ak je filtrovaná populácia prázdna, upravte filtre na menej prísne.
+        """
     )
