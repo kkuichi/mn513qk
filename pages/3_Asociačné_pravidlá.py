@@ -31,7 +31,7 @@ st.title("Asociačné pravidlá")
 
 ZAVAZNOST_LABELS = {
     1: "1 – Prepustenie domov",
-    2: "2 – Presun na oddelenie",
+    2: "2 – Presun na iné oddelenie",
     3: "3 – Smrť",
 }
 
@@ -51,10 +51,11 @@ RULES_FILES = {
 }
 
 
+_DRUG_KEYS = list(DRUG_OPTIONS.keys())
+
 def antecedent_sort_key(item):
-    
-    if item in DRUG_OPTIONS:
-        return (0, DRUG_OPTIONS.index(item), item)
+    if item in _DRUG_KEYS:
+        return (0, _DRUG_KEYS.index(item), item)
     if item in COMORBIDITY_ORDER:
         return (1, COMORBIDITY_ORDER.index(item), item)
     if item.startswith("Veková kategória"):
@@ -140,7 +141,7 @@ def render_rules(rules_file_path, key_prefix):
     # Dynamické maximá podľa datasetu
     max_support = rules_view["support"].max() if not rules_view.empty else 1.0
     max_confidence = rules_view["confidence"].max() if not rules_view.empty else 1.0
-    max_lift = rules_view["lift"].max() if not rules_view.empty else 10.0
+    max_lift = rules_view["lift"].max() if not rules_view.empty else 2.0
     
     # Defaults
     default_support = min(0.10, max_support)
@@ -153,7 +154,7 @@ def render_rules(rules_file_path, key_prefix):
     with slider_col2:
         min_confidence = st.slider("Min. Confidence", 0.30, max_confidence, default_confidence, 0.01, key=f"{key_prefix}_confidence")
     with slider_col3:
-        min_lift = st.slider("Min. Lift", 1.0, max_lift, default_lift, 0.1, key=f"{key_prefix}_lift")
+        min_lift = st.slider("Min. Lift", 1.0, max_lift, default_lift, 0.01, key=f"{key_prefix}_lift")
 
     # --- Filtrovanie ---
     filtered = rules_view[

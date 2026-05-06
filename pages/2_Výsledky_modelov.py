@@ -23,7 +23,7 @@ MODEL_NAMES = ["Random Forest", "XGBoost", "Logistická regresia", "Baseline"]
 # -----------------------------------------------
 # POROVNÁVACÍ BAR CHART — Accuracy, Balanced Accuracy, Macro F1
 # -----------------------------------------------
-st.subheader("Porovnanie modelov")
+st.subheader("Prehľad výkonnosti")
 
 fig_compare = go.Figure()
 
@@ -61,13 +61,13 @@ fig_compare.update_layout(
     margin=dict(l=24, r=24, t=28, b=80),
 )
 apply_chart_theme(fig_compare)
+fig_compare.update_yaxes(tickfont=dict(color=PALETTE["text"]), title_font=dict(color=PALETTE["text"]))
 st.plotly_chart(fig_compare, use_container_width=True)
 
 # -----------------------------------------------
 # METRIKY — karty
 # -----------------------------------------------
 st.markdown("---")
-st.subheader("Detailné metriky")
 
 mcols = st.columns(len(MODEL_NAMES))
 for col, model in zip(mcols, MODEL_NAMES):
@@ -81,9 +81,9 @@ for col, model in zip(mcols, MODEL_NAMES):
 # ROZLOŽENIE TRIED V DATASETE
 # -----------------------------------------------
 st.markdown("---")
-st.subheader("Rozloženie tried v datasete")
+st.subheader("Distribúcia pacientov v testovacej vzorke (20 % datasetu) podľa výsledku hospitalizácie")
 
-zavaznost_map = {1: "1 – Prepustenie domov", 2: "2 – Presun na oddelenie", 3: "3 – Smrť"}
+zavaznost_map = {1: "1 – Prepustenie domov", 2: "2 – Presun na iné oddelenie", 3: "3 – Smrť"}
 class_counts = df["Závažnosť priebehu ochorenia"].value_counts().sort_index()
 total = class_counts.sum()
 
@@ -92,7 +92,7 @@ for col, (cls, count) in zip(dist_cols, class_counts.items()):
     with col:
         st.metric(
             label=zavaznost_map.get(cls, str(cls)),
-            value=f"{count}",
+            value=f"{round(count * 0.2)} pacientov",
             delta=f"{count / total * 100:.1f} % z celku",
             delta_color="off",
         )
@@ -101,7 +101,7 @@ for col, (cls, count) in zip(dist_cols, class_counts.items()):
 # CONFUSION MATRICES — 2×2 mriežka
 # -----------------------------------------------
 st.markdown("---")
-st.subheader("Confusion matice")
+st.subheader("Confusion Matrix")
 
 cm_color_scale = ['#F6FBFF', '#E6F4FA', '#CBE8F3', '#A8D7EB', '#84C5E2']
 
@@ -137,11 +137,15 @@ for col, model in grid:
             tickfont=dict(color=PALETTE["text"]),
             title_font=dict(color=PALETTE["text"]),
             color=PALETTE["text"],
+            tickvals=labels,
+            ticktext=[str(l) for l in labels],
         )
         cm_fig.update_yaxes(
             tickfont=dict(color=PALETTE["text"]),
             title_font=dict(color=PALETTE["text"]),
             color=PALETTE["text"],
+            tickvals=labels,
+            ticktext=[str(l) for l in labels],
         )
         cm_fig.update_traces(textfont=dict(color=PALETTE["text"]))
         st.plotly_chart(cm_fig, use_container_width=True)

@@ -11,24 +11,24 @@ df = load_data()
 
 # Prevalencia v bežnej populácii — placeholder hodnoty, doplň skutočné
 POPULATION_PREVALENCE = {
-    "Hypertenzia":                    "29,0 %",
-    "Diabetes mellitus":              "7,4 %",
-    "Kardiovaskulárne ochorenia":     "7,2 %",
-    "Chronické respiračné ochorenia": "5,1 %",
-    "Renálne ochorenia":              "3,8 %",
-    "Pečeňové ochorenia":             "1,5 %",
-    "Onkologické ochorenia":          "4,2 %",
+    "Hypertenzia":                    "33,0 %",
+    "Diabetes mellitus":              "10,5 %",
+    "Kardiovaskulárne ochorenia":     "6,8 %",
+    "Chronické respiračné ochorenia": "10,3 %",
+    "Renálne ochorenia":              "9,1 %",
+    "Pečeňové ochorenia":             "29,8 %",
+    "Onkologické ochorenia":          "4,6 %",
 }
 
 # Zdroje — doplň skutočný text a URL
 SOURCES = {
-    "Hypertenzia":                    "[Zdroj 1]",
-    "Diabetes mellitus":              "[Zdroj 2]",
-    "Kardiovaskulárne ochorenia":     "[Zdroj 3]",
-    "Chronické respiračné ochorenia": "[Zdroj 4]",
-    "Renálne ochorenia":              "[Zdroj 5]",
-    "Pečeňové ochorenia":             "[Zdroj 6]",
-    "Onkologické ochorenia":          "[Zdroj 7]",
+    "Hypertenzia":                    "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC8446938/' target='_blank'>PMC8446938</a>",
+    "Diabetes mellitus":              "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11057359/' target='_blank'>PMC11057359</a>",
+    "Kardiovaskulárne ochorenia":     "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC7755038/' target='_blank'>PMC7755038</a>",
+    "Chronické respiračné ochorenia": "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC9050565/' target='_blank'>PMC9050565</a>",
+    "Renálne ochorenia":              "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC7049905/' target='_blank'>PMC7049905</a>",
+    "Pečeňové ochorenia":             "<a href='https://doi.org/10.1016/j.cgh.2021.12.002' target='_blank'>10.1016/j.cgh.2021.12.002</a>",
+    "Onkologické ochorenia":          "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC5807846/' target='_blank'>PMC5807846</a>",
 }
 
 if len(df) == 0:

@@ -26,7 +26,7 @@ VYSLEDOK_COL = 'Závažnosť priebehu ochorenia'
 
 VYSLEDOK_LABELS = {
     1: '1 - Prepustenie domov',
-    2: '2 - Presun na oddelenie',
+    2: '2 - Presun na iné oddelenie',
     3: '3 - Smrť'
 }
 
@@ -40,40 +40,40 @@ COMORBIDITY_OPTIONS = [
     'Onkologické ochorenia'
 ]
 
-DRUG_OPTIONS = [
-    'MD652 | FABIFLU TABLETS',
-    'MD656 IV-BECT 6MG (ivermectin)',
-    '5042D | VEKLURY',
-    '9547D | PAXLOVID',
-    'LAGEVRIO',
-    '00584 | PYRIDOXIN LÉČIVA INJ',
-    'Vitamin C',
-    'Vitamin D',
-    '00498 | MAGNESIUM SULFURICUM BBP 100 MG/ML INJEKČNÝ ROZTOK',
-    '00449 | EREVIT 300 MG/ML',
-    'Prednison',
-    'Dexametazon',
-    '2410B HYDROCORTISONE',
-    '3242C | OLUMIANT 4 MG',
-    'Kineret',
-    'RoActemra',
-    '34045 | POLYOXIDONIUM 6 MG',
-    '87299 | IMUNOR',
-    '56930 IMMODIN',
-    'Isoprinosine/INOMED',
-    '35715 Azithromycin',
-    '45954 Ceftriaxon',
-    'Moxifloxacin',
-    'Ciprofloxacin',
-    'PPI',
-    '94918 AMBROBENE',
-    '24859 PENTOXYPHILLINUM',
-    '8893 ACC INJEKT',
-    '24949 CODEIN ',
-    '26846 OXANTIL',
-    'Antikoagulancia',
-    'Antiagregacne'
-]
+DRUG_OPTIONS = {
+    'MD652 | FABIFLU TABLETS': 'MD652 | FABIFLU TABLETS',
+    'MD656 IV-BECT 6MG (ivermectin)': 'MD656 IV-BECT 6MG (ivermectin)',
+    '5042D | VEKLURY': '5042D | VEKLURY',
+    '9547D | PAXLOVID': '9547D | PAXLOVID',
+    'LAGEVRIO': 'LAGEVRIO',
+    '00584 | PYRIDOXIN LÉČIVA INJ': '00584 | PYRIDOXIN LÉČIVA INJ',
+    'Vitamin C': 'Vitamin C',
+    'Vitamin D': 'Vitamin D',
+    '00498 | MAGNESIUM SULFURICUM BBP 100 MG/ML INJEKČNÝ ROZTOK': '00498 | MAGNESIUM SULFURICUM BBP 100 MG/ML INJEKČNÝ ROZTOK',
+    '00449 | EREVIT 300 MG/ML': '00449 | EREVIT 300 MG/ML',
+    'Prednison': 'Prednison',
+    'Dexametazon': 'Dexametazon',
+    '2410B HYDROCORTISONE': '2410B HYDROCORTISONE',
+    '3242C | OLUMIANT 4 MG': '3242C | OLUMIANT 4 MG',
+    'Kineret': 'Kineret',
+    'RoActemra': 'RoActemra',
+    '34045 | POLYOXIDONIUM 6 MG': '34045 | POLYOXIDONIUM 6 MG',
+    '87299 | IMUNOR': '87299 | IMUNOR',
+    '56930 IMMODIN': '56930 IMMODIN',
+    'Isoprinosine/INOMED': 'Isoprinosine/INOMED',
+    '35715 Azithromycin': '35715 Azithromycin',
+    '45954 Ceftriaxon': '45954 Ceftriaxon',
+    'Moxifloxacin': 'Moxifloxacin',
+    'Ciprofloxacin': 'Ciprofloxacin',
+    'PPI': 'PPI',
+    '94918 AMBROBENE': '94918 AMBROBENE',
+    '24859 PENTOXYPHILLINUM': '24859 PENTOXYPHILLINUM',
+    '8893 ACC INJEKT': '8893 ACC INJEKT',
+    '24949 CODEIN ': '24949 CODEIN ',
+    '26846 OXANTIL': '26846 OXANTIL',
+    'Antikoagulancia': 'Antikoagulanciá',
+    'Antiagregacne': 'Antiagregačné',
+}
 
 
 def _build_css():
@@ -203,9 +203,23 @@ def _build_css():
     """
 
 
+def _preload_cache():
+    if st.session_state.get("_cache_preloaded"):
+        return
+    import os
+    df = load_data()
+    compute_model_results(df)
+    for fname in ("asociacne_pravidla.xlsx", "asociacne_pravidla_fpgrowth.xlsx"):
+        path = str(BASE_DIR / fname)
+        mtime = os.path.getmtime(path) if os.path.exists(path) else None
+        load_association_rules(path, mtime)
+    st.session_state["_cache_preloaded"] = True
+
+
 def setup_page(page_title="COVID-19 Dashboard"):
     st.set_page_config(page_title=page_title, layout="wide")
     st.markdown(_build_css(), unsafe_allow_html=True)
+    _preload_cache()
 
 
 def vek_sort_key(value):
@@ -583,7 +597,7 @@ def render_sidebar_filters(df):
         "Logika komorbidít",
         options=["AND", "OR"],
         index=0,
-        help="AND = pacient musí mať všetky vybrané komorbidity, OR = stačí aspoň jedna vybraná komorbidita."
+        help="AND: do výberu budú zahrnutí iba pacienti, ktorí mali súčasne všetky vybrané komorbidity.\nOR: do výberu budú zahrnutí pacienti, ktorí mali aspoň jednu z vybraných komorbidít."
     )
 
     comorbidity_btn_col1, comorbidity_btn_col2 = st.sidebar.columns(2)
@@ -606,7 +620,7 @@ def render_sidebar_filters(df):
         "Logika liekov",
         options=["AND", "OR"],
         index=0,
-        help="AND = pacient musí mať všetky vybrané lieky, OR = stačí aspoň jeden vybraný liek."
+        help="AND: do výberu budú zahrnutí iba pacienti, ktorým boli podané súčasne všetky vybrané lieky.\nOR: do výberu budú zahrnutí pacienti, ktorým bol podaný aspoň jeden z vybraných liekov."
     )
 
     drug_btn_col1, drug_btn_col2 = st.sidebar.columns(2)
@@ -617,11 +631,11 @@ def render_sidebar_filters(df):
         st.button("Zrušiť všetky", key="drug_deselect_all", use_container_width=True, on_click=set_checkbox_group, args=(drug_keys, False))
 
     drug_selected = {}
-    for idx, drug_name in enumerate(DRUG_OPTIONS):
+    for idx, (col_name, display_name) in enumerate(DRUG_OPTIONS.items()):
         key = f"drug_{idx}"
         if key not in st.session_state:
             st.session_state[key] = False
-        drug_selected[drug_name] = st.sidebar.checkbox(drug_name, key=key)
+        drug_selected[col_name] = st.sidebar.checkbox(display_name, key=key)
 
     # Filtrovanie
     df_filtered = df[
@@ -640,8 +654,8 @@ def render_sidebar_filters(df):
             mask = df_filtered[valid_comorbidities].eq(True).any(axis=1)
         df_filtered = df_filtered[mask]
 
-    selected_drugs = [d for d, selected in drug_selected.items() if selected]
-    valid_drugs = [d for d in selected_drugs if d in df_filtered.columns]
+    selected_drugs = [col for col, selected in drug_selected.items() if selected]
+    valid_drugs = [col for col in selected_drugs if col in df_filtered.columns]
     if valid_drugs:
         if drug_logic == "AND":
             drug_mask = df_filtered[valid_drugs].eq(True).all(axis=1)

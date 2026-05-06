@@ -11,9 +11,9 @@ from utils import (
     setup_page,
 )
 
-setup_page("Interaktívne grafy")
+setup_page("Prehľad pacientov")
 
-st.title("Interaktívne grafy")
+st.title("Prehľad pacientov")
 
 df = load_data()
 df_filtered, vek_options = render_sidebar_filters(df)
@@ -88,7 +88,7 @@ with col4:
 
 with col5:
     st.subheader("Výsledok hospitalizácie")
-    zavaznost_map = {1: '1 - Prepustenie domov', 2: '2 - Presun na oddelenie', 3: '3 - Smrť'}
+    zavaznost_map = {1: '1 - Prepustenie domov', 2: '2 - Presun na iné oddelenie', 3: '3 - Smrť'}
     df_vysledok = df_filtered.copy()
     df_vysledok.loc[:, 'Výsledok_hospitalizácie_popis'] = df_vysledok[VYSLEDOK_COL].map(zavaznost_map)
     pocty_zavaznost = df_vysledok['Výsledok_hospitalizácie_popis'].value_counts().reset_index()
@@ -114,11 +114,15 @@ with col5:
         text='Text',
         color_discrete_map={
             '1 - Prepustenie domov': '#2ecc71',
-            '2 - Presun na oddelenie': '#f39c12',
+            '2 - Presun na iné oddelenie': '#f39c12',
             '3 - Smrť': '#e74c3c'
         }
     )
-    fig_bar.update_traces(textposition='outside', cliponaxis=False)
+    fig_bar.update_traces(
+        textposition='outside',
+        cliponaxis=False,
+        hovertemplate='%{y}<br>Počet: %{x}<extra></extra>'
+    )
     max_text_len = int(pocty_zavaznost['Text'].str.len().max()) if not pocty_zavaznost.empty else 0
     adaptive_right_margin = max(50, min(260, 14 + (max_text_len * 6)))
     fig_bar.update_layout(
@@ -182,7 +186,11 @@ fig_vek_distribucia = px.bar(
     color='Vek_kat',
     color_discrete_sequence=['#0F766E', '#14B8A6', '#2D728F', '#1D4E89', '#84A59D', '#3A7D44']
 )
-fig_vek_distribucia.update_traces(textposition='outside', showlegend=True)
+fig_vek_distribucia.update_traces(
+    textposition='outside',
+    showlegend=True,
+    hovertemplate='%{x}<br>Počet: %{y}<extra></extra>'
+)
 apply_chart_theme(fig_vek_distribucia)
 fig_vek_distribucia.update_xaxes(title_text="")
 fig_vek_distribucia.update_layout(
@@ -223,12 +231,15 @@ fig_vek = px.bar(
     category_orders={'Vek_kat': poradie},
     color_discrete_map={
         '1 - Prepustenie domov': '#2ecc71',
-        '2 - Presun na oddelenie': '#f39c12',
+        '2 - Presun na iné oddelenie': '#f39c12',
         '3 - Smrť': '#e74c3c'
     },
     barmode='group'
 )
-fig_vek.update_traces(textposition='outside')
+fig_vek.update_traces(
+    textposition='outside',
+    hovertemplate='%{x}<br>%{fullData.name}<br>Počet: %{y}<extra></extra>'
+)
 apply_chart_theme(fig_vek)
 fig_vek.update_xaxes(title_text="")
 fig_vek.update_layout(
@@ -281,7 +292,10 @@ fig_vlna_distribucia = px.bar(
 )
 fig_vlna_distribucia.update_xaxes(type='category')
 fig_vlna_distribucia.update_xaxes(title_text="")
-fig_vlna_distribucia.update_traces(textposition='outside')
+fig_vlna_distribucia.update_traces(
+    textposition='outside',
+    hovertemplate='Vlna: %{x}<br>Počet: %{y}<extra></extra>'
+)
 apply_chart_theme(fig_vlna_distribucia)
 fig_vlna_distribucia.update_layout(
     legend=dict(
