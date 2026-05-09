@@ -1,4 +1,5 @@
 import os
+import pickle
 import re
 from pathlib import Path
 
@@ -191,6 +192,12 @@ def _build_css():
         color: {PALETTE['accent']} !important;
     }}
 
+    /* Tooltip help ikona */
+    [data-testid="stTooltipIcon"] svg, [data-testid="stTooltipIcon"] svg * {{
+        color: {PALETTE['muted']} !important;
+        fill: {PALETTE['muted']} !important;
+    }}
+
     /* Posun obsahu nižšie, aby neprekryl horný header */
     [data-testid="stAppViewContainer"] .block-container {{
         padding-top: 4rem !important;
@@ -307,6 +314,11 @@ def load_association_rules(file_path, file_mtime):
 
 @st.cache_data
 def compute_model_results(source_df):
+    pkl_path = BASE_DIR / "model_results.pkl"
+    if pkl_path.exists():
+        with open(pkl_path, "rb") as f:
+            return pickle.load(f)
+
     work_df = source_df.copy()
 
     work_df["Pohlavie_num"] = work_df["Pohlavie"].map({"Muž": 0, "Žena": 1})
