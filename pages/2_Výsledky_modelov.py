@@ -74,7 +74,8 @@ for col, model in zip(mcols, MODEL_NAMES):
     with col:
         st.markdown(f"**{model}**")
         st.metric("Accuracy", f"{results[model]['acc'] * 100:.2f} %")
-        st.metric("Balanced Accuracy", f"{results[model]['balanced_acc'] * 100:.2f} %")
+        st.metric("Balanced Accuracy", f"{results[model]['balanced_acc'] * 100:.2f} %",
+                  help="Balanced Accuracy predstavuje priemer presností (Accuracy) klasifikácie vypočítaný samostatne pre každú triedu, čím zabezpečuje rovnakú váhu pre každú triedu bez ohľadu na jej zastúpenie v datasete.")
         st.metric("Macro F1", f"{results[model]['f1']:.3f}")
 
 # -----------------------------------------------
