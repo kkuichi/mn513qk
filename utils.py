@@ -10,6 +10,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_sample_weight
+
 from xgboost import XGBClassifier
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -371,7 +373,8 @@ def compute_model_results(source_df):
         n_jobs=-1,
         verbosity=0
     )
-    xgb.fit(X_train, y_train - 1)
+    sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
+    xgb.fit(X_train, y_train - 1, sample_weight=sample_weights)
     y_pred_xgb = xgb.predict(X_test) + 1  # späť na 1,2,3
 
     # Logistic Regression
