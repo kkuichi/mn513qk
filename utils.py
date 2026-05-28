@@ -1,5 +1,4 @@
 import os
-import pickle
 import re
 from pathlib import Path
 
@@ -316,11 +315,6 @@ def load_association_rules(file_path, file_mtime):
 
 @st.cache_data
 def compute_model_results(source_df):
-    pkl_path = BASE_DIR / "model_results.pkl"
-    if pkl_path.exists():
-        with open(pkl_path, "rb") as f:
-            return pickle.load(f)
-
     work_df = source_df.copy()
 
     work_df["Pohlavie_num"] = work_df["Pohlavie"].map({"Muž": 0, "Žena": 1})
