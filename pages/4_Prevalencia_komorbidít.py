@@ -9,7 +9,7 @@ st.title("Prevalencia komorbidít")
 
 df = load_data()
 
-# Prevalencia v bežnej populácii — placeholder hodnoty, doplň skutočné
+# Prevalencia v bežnej populácii
 POPULATION_PREVALENCE = {
     "Hypertenzia":                    "33,0 %",
     "Diabetes mellitus":              "10,5 %",
@@ -20,7 +20,7 @@ POPULATION_PREVALENCE = {
     "Onkologické ochorenia":          "4,6 %",
 }
 
-# Zdroje — doplň skutočný text a URL
+# Zdroje
 SOURCES = {
     "Hypertenzia":                    "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC8446938/' target='_blank'>PMC8446938</a>",
     "Diabetes mellitus":              "<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11057359/' target='_blank'>PMC11057359</a>",
