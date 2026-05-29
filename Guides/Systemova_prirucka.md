@@ -264,7 +264,7 @@ Pre každú skupinu liekov notebook:
 
 #### 2.2.4 Analyzované lieky
 
-Lieky sú analyzované po skupinách: Fabiflu, Ivermectin, Veklury, Paxlovid, Lagevrio, Pyridoxín, Vitamín C, Vitamín D, Magnézium, Erevit, Prednison, Dexametazón, Hydrokortizón, Olumiant, Anakinra, RoActemra, Polyoxidonium, Imunor, Immodin, Isoprinosine, INOMED, Azithromycin, Ceftriaxon, Moxifloxacin, Ciprofloxacin, PPI, Smecta, Reasec, Lagosa, Degan, Ambrobene, Pentoxyfylín, ACC, Kodeín, Oxantil, Fraxiparin, Clexane, Fragmin, Aspirin, Anopyrin.
+Lieky sú analyzované po skupinách: Antivirotiká, Vitamíny, Imuno-, Imuno+, Antibiotiká, Iné/PPI, Kašeľ, Antikoagulanciá
 
 #### 2.2.5 Výstupy
 
