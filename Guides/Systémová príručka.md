@@ -330,11 +330,21 @@ Aplikácia pri spustení načítava tri súbory umiestnené v koreni repozitára
 
 ### 3.4 Spustenie aplikácie
 
+#### Online verzia
+
+Aplikácia je dostupná online bez nutnosti inštalácie na adrese:
+
+[https://mn-covid-dashboard.streamlit.app/](https://mn-covid-dashboard.streamlit.app/)
+
+#### Lokálne spustenie
+
+Po dokončení inštalácie (viď sekcia Inštalácia a spustenie) spustite aplikáciu príkazom:
+
 ```bash
 streamlit run Úvod.py
 ```
 
-Po spustení sa aplikácia otvorí v prehliadači na adrese `http://localhost:8501`.
+Aplikácia sa otvorí v prehliadači na adrese `http://localhost:8501`.
 
 ### 3.5 Sekcie aplikácie
 
